@@ -1,4 +1,4 @@
-module github.com/maja42/goval
+module github.com/JackMcGuinness-2/goval
 
 go 1.18
 
