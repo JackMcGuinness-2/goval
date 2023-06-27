@@ -372,7 +372,12 @@ func compareFloat(val1 float64, val2 float64, operation string) bool {
 func asObjectKey(key interface{}) string {
 	s, ok := key.(string)
 	if !ok {
-		panic(fmt.Errorf("type error: object key must be string, but was %s", typeOf(key)))
+		sInt, ok := key.(int)
+		if !ok {
+			panic(fmt.Errorf("type error: object key must be string or int, but was %s", typeOf(key)))
+		} else {
+			return strconv.Itoa(sInt)
+		}
 	}
 	return s
 }
@@ -400,7 +405,12 @@ func accessField(s interface{}, field interface{}) interface{} {
 	if ok {
 		key, ok := field.(string)
 		if !ok {
-			panic(fmt.Errorf("syntax error: object key must be string, but was %s", typeOf(field)))
+			sInt, ok := field.(int)
+			if !ok {
+				panic(fmt.Errorf("type error: object key must be string or int, but was %s", typeOf(key)))
+			} else {
+				key = strconv.Itoa(sInt)
+			}
 		}
 		val, ok := obj[key]
 		if !ok {
