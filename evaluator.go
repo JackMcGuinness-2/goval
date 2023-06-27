@@ -1,7 +1,7 @@
 package goval
 
 import (
-	"github.com/maja42/goval/internal"
+	"github.com/JackMcGuinness-2/goval/internal"
 )
 
 // NewEvaluator creates a new evaluator.

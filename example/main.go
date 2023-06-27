@@ -3,12 +3,13 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"github.com/maja42/goval"
 	"math/rand"
 	"os"
 	"os/signal"
 	"reflect"
 	"runtime"
+
+	"github.com/JackMcGuinness-2/goval"
 )
 
 func main() {
