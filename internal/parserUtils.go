@@ -222,7 +222,11 @@ func div(val1 interface{}, val2 interface{}) interface{} {
 	int2, int2OK := val2.(int)
 
 	if int1OK && int2OK {
-		return int1 / int2
+		if int2 == 0 {
+			return 0
+		} else {
+			return int1 / int2
+		}
 	}
 
 	float1, float1OK := val1.(float64)
@@ -238,13 +242,21 @@ func div(val1 interface{}, val2 interface{}) interface{} {
 	}
 
 	if float1OK && float2OK {
-		return float1 / float2
+		if float2 == 0 {
+			return 0
+		} else {
+			return float1 / float2
+		}
 	}
 
 	float321, f321Ok := val1.(float32)
 	float322, f322Ok := val1.(float32)
 	if f321Ok && f322Ok {
-		return float321 / float322
+		if float322 == 0 {
+			return 0
+		} else {
+			return float321 / float322
+		}
 	}
 	panic(fmt.Errorf("type error: cannot divide type %s and %s", typeOf(val1), typeOf(val2)))
 }
@@ -484,31 +496,31 @@ func accessField(s interface{}, field interface{}) interface{} {
 		return tryNumericToF64(arrVar[intIdx])
 	}
 
-	// v := reflect.ValueOf(s)
-	// typ := v.Type()
+	v := reflect.ValueOf(s)
+	typ := v.Type()
 
-	// if v.Kind() == reflect.Struct {
-	// 	key, ok := field.(string)
-	// 	if ok {
-	// 		for i := 0; i < v.NumField(); i++ {
-	// 			jsonTag := typ.Field(i).Tag.Get("json")
-	// 			if jsonTag != "" && jsonTag == key {
-	// 				x := v.Field(i).Interface()
-	// 				return tryNumericToF64(x)
-	// 			} else if typ.Field(i).Name == key {
-	// 				x := v.Field(i).Interface()
-	// 				return tryNumericToF64(x)
-	// 			}
-	// 		}
-	// 	}
-	// } else if v.Kind() == reflect.Slice || v.Kind() == reflect.Array {
-	// 	intIdx, ok := field.(int)
-	// 	if ok {
-	// 		return v.Index(intIdx).Interface()
-	// 	} else {
-	// 		fmt.Printf("trying to access array by non integer!: %s", v)
-	// 	}
-	// }
+	if v.Kind() == reflect.Struct {
+		key, ok := field.(string)
+		if ok {
+			for i := 0; i < v.NumField(); i++ {
+				jsonTag := typ.Field(i).Tag.Get("json")
+				if jsonTag != "" && jsonTag == key {
+					x := v.Field(i).Interface()
+					return tryNumericToF64(x)
+				} else if typ.Field(i).Name == key {
+					x := v.Field(i).Interface()
+					return tryNumericToF64(x)
+				}
+			}
+		}
+	} else if v.Kind() == reflect.Slice || v.Kind() == reflect.Array {
+		intIdx, ok := field.(int)
+		if ok {
+			return v.Index(intIdx).Interface()
+		} else {
+			fmt.Printf("trying to access array by non integer!: %s", v)
+		}
+	}
 
 	panic(fmt.Errorf("syntax error: cannot access fields on type %s", typeOf(s)))
 }
