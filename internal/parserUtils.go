@@ -461,7 +461,7 @@ func accessField(s interface{}, field interface{}) interface{} {
 		if !ok {
 			panic(fmt.Errorf("var error: object has no member %q", field))
 		}
-		return val
+		return tryNumericToF64(val)
 	}
 
 	arrVar, ok := s.([]interface{})
@@ -481,34 +481,34 @@ func accessField(s interface{}, field interface{}) interface{} {
 		if intIdx < 0 || intIdx >= len(arrVar) {
 			panic(fmt.Errorf("var error: array index %d is out of range [%d, %d]", intIdx, 0, len(arrVar)))
 		}
-		return arrVar[intIdx]
+		return tryNumericToF64(arrVar[intIdx])
 	}
 
-	v := reflect.ValueOf(s)
-	typ := v.Type()
+	// v := reflect.ValueOf(s)
+	// typ := v.Type()
 
-	if v.Kind() == reflect.Struct {
-		key, ok := field.(string)
-		if ok {
-			for i := 0; i < v.NumField(); i++ {
-				jsonTag := typ.Field(i).Tag.Get("json")
-				if jsonTag != "" && jsonTag == key {
-					x := v.Field(i).Interface()
-					return tryNumericToF64(x)
-				} else if typ.Field(i).Name == key {
-					x := v.Field(i).Interface()
-					return tryNumericToF64(x)
-				}
-			}
-		}
-	} else if v.Kind() == reflect.Slice || v.Kind() == reflect.Array {
-		intIdx, ok := field.(int)
-		if ok {
-			return v.Index(intIdx).Interface()
-		} else {
-			fmt.Printf("trying to access array by non integer!: %s", v)
-		}
-	}
+	// if v.Kind() == reflect.Struct {
+	// 	key, ok := field.(string)
+	// 	if ok {
+	// 		for i := 0; i < v.NumField(); i++ {
+	// 			jsonTag := typ.Field(i).Tag.Get("json")
+	// 			if jsonTag != "" && jsonTag == key {
+	// 				x := v.Field(i).Interface()
+	// 				return tryNumericToF64(x)
+	// 			} else if typ.Field(i).Name == key {
+	// 				x := v.Field(i).Interface()
+	// 				return tryNumericToF64(x)
+	// 			}
+	// 		}
+	// 	}
+	// } else if v.Kind() == reflect.Slice || v.Kind() == reflect.Array {
+	// 	intIdx, ok := field.(int)
+	// 	if ok {
+	// 		return v.Index(intIdx).Interface()
+	// 	} else {
+	// 		fmt.Printf("trying to access array by non integer!: %s", v)
+	// 	}
+	// }
 
 	panic(fmt.Errorf("syntax error: cannot access fields on type %s", typeOf(s)))
 }
