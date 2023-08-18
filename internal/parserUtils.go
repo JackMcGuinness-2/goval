@@ -99,6 +99,12 @@ func add(val1 interface{}, val2 interface{}) interface{} {
 	if float1OK && float2OK {
 		return float1 + float2
 	}
+
+	float321, f321Ok := val1.(float32)
+	float322, f322Ok := val1.(float32)
+	if f321Ok && f322Ok {
+		return float321 + float322
+	}
 	if str1OK && float2OK {
 		return str1 + strconv.FormatFloat(float2, 'f', -1, 64)
 	}
@@ -170,6 +176,12 @@ func sub(val1 interface{}, val2 interface{}) interface{} {
 	if float1OK && float2OK {
 		return float1 - float2
 	}
+
+	float321, f321Ok := val1.(float32)
+	float322, f322Ok := val1.(float32)
+	if f321Ok && f322Ok {
+		return float321 - float322
+	}
 	panic(fmt.Errorf("type error: cannot subtract type %s and %s", typeOf(val1), typeOf(val2)))
 }
 
@@ -196,6 +208,12 @@ func mul(val1 interface{}, val2 interface{}) interface{} {
 	if float1OK && float2OK {
 		return float1 * float2
 	}
+
+	float321, f321Ok := val1.(float32)
+	float322, f322Ok := val1.(float32)
+	if f321Ok && f322Ok {
+		return float321 * float322
+	}
 	panic(fmt.Errorf("type error: cannot multiply type %s and %s", typeOf(val1), typeOf(val2)))
 }
 
@@ -221,6 +239,12 @@ func div(val1 interface{}, val2 interface{}) interface{} {
 
 	if float1OK && float2OK {
 		return float1 / float2
+	}
+
+	float321, f321Ok := val1.(float32)
+	float322, f322Ok := val1.(float32)
+	if f321Ok && f322Ok {
+		return float321 / float322
 	}
 	panic(fmt.Errorf("type error: cannot divide type %s and %s", typeOf(val1), typeOf(val2)))
 }
@@ -382,6 +406,27 @@ func asObjectKey(key interface{}) string {
 	return s
 }
 
+func tryNumericToF64(n any) any {
+	switch n.(type) {
+	case int:
+		return float64(n.(int))
+	case int32:
+		return float64(n.(int32))
+	case int64:
+		return float64(n.(int64))
+	case uint:
+		return float64(n.(uint))
+	case uint32:
+		return float64(n.(uint32))
+	case uint64:
+		return float64(n.(uint64))
+	case float32:
+		return float64(n.(float32))
+	default:
+		return n
+	}
+}
+
 func addObjectMember(obj map[string]interface{}, key, val interface{}) map[string]interface{} {
 	s := asObjectKey(key)
 	_, ok := obj[s]
@@ -437,6 +482,32 @@ func accessField(s interface{}, field interface{}) interface{} {
 			panic(fmt.Errorf("var error: array index %d is out of range [%d, %d]", intIdx, 0, len(arrVar)))
 		}
 		return arrVar[intIdx]
+	}
+
+	v := reflect.ValueOf(s)
+	typ := v.Type()
+
+	if v.Kind() == reflect.Struct {
+		key, ok := field.(string)
+		if ok {
+			for i := 0; i < v.NumField(); i++ {
+				jsonTag := typ.Field(i).Tag.Get("json")
+				if jsonTag != "" && jsonTag == key {
+					x := v.Field(i).Interface()
+					return tryNumericToF64(x)
+				} else if typ.Field(i).Name == key {
+					x := v.Field(i).Interface()
+					return tryNumericToF64(x)
+				}
+			}
+		}
+	} else if v.Kind() == reflect.Slice || v.Kind() == reflect.Array {
+		intIdx, ok := field.(int)
+		if ok {
+			return v.Index(intIdx).Interface()
+		} else {
+			fmt.Printf("trying to access array by non integer!: %s", v)
+		}
 	}
 
 	panic(fmt.Errorf("syntax error: cannot access fields on type %s", typeOf(s)))
